@@ -3,9 +3,6 @@ from airflow.decorators import dag, task
 import json
 import requests
 
-from minio import Minio
-import urllib3
-
 @dag(
     schedule=None,
     start_date=pendulum.datetime(2025, 1, 1, tz="GMT-3"),
