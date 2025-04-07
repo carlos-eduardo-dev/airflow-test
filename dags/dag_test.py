@@ -5,7 +5,7 @@ import requests
 
 @dag(
     schedule=None,
-    start_date=pendulum.datetime(2025, 1, 1, tz="GMT-3"),
+    start_date=pendulum.datetime(2025, 1, 1, tz="UTC"),
     catchup=False,
     tags=["pokemon"],
 
