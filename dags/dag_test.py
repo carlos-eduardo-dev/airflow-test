@@ -1,41 +1,35 @@
-from airflow.decorators import dag, task
-import pendulum
-import json
-import requests
+from datetime import datetime
+from time import sleep
 
-@dag(
-    schedule=None,
-    start_date=pendulum.datetime(2025, 1, 1, tz="UTC"),
-    catchup=False,
-    tags=["pokemon"],
+from airflow.models import DAG
+from airflow.operators.python import PythonOperator
 
-)
+DEFAULT_DATE = datetime(2025, 1, 1)
 
-def dag_test():
+args = {
+    'owner': 'airflow',
+    'start_date': DEFAULT_DATE,
+}
 
-    @task(task_id="download pokemon list")
-    def pokemon():
-        allPokemons = []
-        limit = 20
-        offset = 0
-        total = 1025
-        while offset <=total:
-            api_url = ("https://pokeapi.co/api/v2/pokemon-species/?limit=%s&offset=%s" % (limit, 20 * offset))
-            response_str = requests.get(api_url)
-            response_json = requests.get(api_url).json()
-            pokemons = []
-            [pokemons.append(pokemon['name']) for pokemon in response_json['results']]
-            print([pokemon for pokemon in pokemons])
-            allPokemons.extend(pokemons)            
-            offset = offset + 1
-        return allPokemons
-    
-    pokemons = pokemon()
-    
-    @task(task_id="print pokemon list")
-    def printPokemons(**pokemons):
+def pokemon():
+    allPokemons = []
+    limit = 20
+    offset = 0
+    total = 1025
+    while offset <=total:
+        api_url = ("https://pokeapi.co/api/v2/pokemon-species/?limit=%s&offset=%s" % (limit, 20 * offset))
+        response_str = requests.get(api_url)
+        response_json = requests.get(api_url).json()
+        pokemons = []
+        [pokemons.append(pokemon['name']) for pokemon in response_json['results']]
         print([pokemon for pokemon in pokemons])
-        
-    printPokemons = printPokemons
+        allPokemons.extend(pokemons)            
+        offset = offset + 1
+    return allPokemons
     
-    printPokemons >> printPokemons
+    
+def printPokemons(**pokemons):
+    print([pokemon for pokemon in pokemons])
+    
+dag = DAG(dag_id='test_pokemon', default_args=args)
+task = PythonOperator(task_id='task1', python_callable=pokemon(), dag=dag)
