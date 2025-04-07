@@ -40,12 +40,12 @@ def print_pokemons(**pokemons):
     print(pokemons)
 
 pokemons_task = PythonOperator(
-    task_id='get all pokemons',
+    task_id='get-all-pokemons',
     python_callable=pokemons,
     dag=dag)
 
 print_pokemons_task = PythonOperator(
-    task_id='print all pokemons',
+    task_id='print-all-pokemons',
     python_callable=print_pokemons,
     dag=dag)
 
