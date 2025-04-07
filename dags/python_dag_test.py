@@ -36,8 +36,8 @@ def pokemons(**kwargs):
         offset = offset + 1
     return allPokemons
 
-def print_pokemons(**pokemons):
-    print(pokemons)
+def print_pokemons(**kwargs):
+    pprint(kwargs)
 
 pokemons_task = PythonOperator(
     task_id='get-all-pokemons',
