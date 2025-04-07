@@ -20,12 +20,12 @@ dag = DAG(
 
 
 
-def print_context(ds, **kwargs):
+def pokemons(**kwargs):
     allPokemons = []
     limit = 20
     offset = 0
     total = 1025
-    while offset <=total:
+    while offset * 20 <=total:
         api_url = ("https://pokeapi.co/api/v2/pokemon-species/?limit=%s&offset=%s" % (limit, 20 * offset))
         response_str = requests.get(api_url)
         response_json = requests.get(api_url).json()
@@ -36,8 +36,17 @@ def print_context(ds, **kwargs):
         offset = offset + 1
     return allPokemons
 
-run_this = PythonOperator(
-    task_id='print_the_context',
-    provide_context=True,
-    python_callable=print_context,
+def print_pokemons(**pokemons):
+    print(pokemons)
+
+pokemons_task = PythonOperator(
+    task_id='get all pokemons',
+    python_callable=pokemons,
     dag=dag)
+
+print_pokemons_task = PythonOperator(
+    task_id='print all pokemons',
+    python_callable=print_pokemons,
+    dag=dag)
+
+print_pokemons_task.set_upstream(pokemons_task)
