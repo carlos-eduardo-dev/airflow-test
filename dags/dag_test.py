@@ -4,6 +4,9 @@ from time import sleep
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 
+import json
+import requests
+
 DEFAULT_DATE = datetime(2025, 1, 1)
 
 args = {
