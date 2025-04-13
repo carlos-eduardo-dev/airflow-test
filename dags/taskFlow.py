@@ -11,6 +11,12 @@ BUCKET = "fact-bucket"
 
 
 @task
+def create_bucket():
+    s3_hook = S3Hook(aws_conn_id=S3_CONN_ID)
+    if not s3_hook.check_for_bucket(bucket_name=BUCKET):
+        s3_hook.create_bucket(bucket_name=BUCKET)
+
+@task
 def upload_to_s3(cat_fact_number):
     # Instantiate
     s3_hook = S3Hook(aws_conn_id=S3_CONN_ID)
@@ -69,7 +75,7 @@ def process_data(cat_fact_number):
     catchup=False,
 )
 def intermediary_data_storage_dag():
-    upload_to_s3(cat_fact_number=1) >> process_data(cat_fact_number=1)
+    create_bucket() >> upload_to_s3(cat_fact_number=1) >> process_data(cat_fact_number=1)
 
 
 intermediary_data_storage_dag()
