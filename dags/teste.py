@@ -56,7 +56,6 @@ with DAG(
                 enum=[f"value {i}" for i in range(16, 64)]
             ),
             "pick_many": Param(
-                "value 42",
                 type="array",
                 items={
                     "type": "string",
