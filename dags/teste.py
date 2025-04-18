@@ -78,4 +78,3 @@ with DAG(
     lang_select >> [english_greetings, german_greetings, french_greetings]
     results_print = print_greetings(english_greetings, german_greetings, french_greetings)
 
-dag()
