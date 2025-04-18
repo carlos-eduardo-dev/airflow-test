@@ -58,11 +58,13 @@ with DAG(
             "arquivos_imdb": Param(
                 default=["title.basics.tsv.gz"],
                 type="array",
-                examples=["title.basics.tsv.gz",
-                          "title.akas.tsv.gz",
-                          "name.basics.tsv.gz"],
-                uniqueItems=True,
-                description="Selecione um ou mais arquivos IMDb"
+                description="Selecione um ou mais arquivos da IMDb",
+                examples=[
+                    "title.basics.tsv.gz",
+                    "title.akas.tsv.gz",
+                    "name.basics.tsv.gz",
+                    "title.ratings.tsv.gz"
+                ]
             ),
             "required_field": Param(
                 # In this example we have no default value
