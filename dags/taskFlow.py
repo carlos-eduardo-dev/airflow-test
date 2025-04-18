@@ -1,7 +1,6 @@
 from pendulum import datetime, duration
 from io import StringIO
 
-from airflow import Dag
 from airflow.models.param import Param
 
 import pandas as pd
