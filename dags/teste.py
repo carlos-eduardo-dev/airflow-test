@@ -64,7 +64,13 @@ with DAG(
                     "title.akas.tsv.gz",
                     "name.basics.tsv.gz",
                     "title.ratings.tsv.gz"
-                ]
+                ],
+                values_display={
+                    "title.basics.tsv.gz": "Title basics",
+                    "title.akas.tsv.gz": "Title AKAs",
+                    "name.basics.tsv.gz": "Name basics",
+                    "title.ratings.tsv.gz": "Title ratings",
+                },
             ),
             "required_field": Param(
                 # In this example we have no default value
