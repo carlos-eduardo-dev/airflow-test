@@ -58,9 +58,13 @@ with DAG(
             "pick_many": Param(
                 "value 42",
                 type="array",
+                items={
+                    "type": "string",
+                    "enum": [f"value {i}" for i in range(16, 64)],
+                },
+                uniqueItems=True,
                 title="Select many Value",
                 description="You can use JSON schema enum's to generate drop down selection boxes.",
-                enum=[f"value {i}" for i in range(16, 64)]
             ),
             "required_field": Param(
                 # In this example we have no default value
