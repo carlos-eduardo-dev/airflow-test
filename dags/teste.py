@@ -55,15 +55,24 @@ with DAG(
                 description="You can use JSON schema enum's to generate drop down selection boxes.",
                 enum=[f"value {i}" for i in range(16, 64)]
             ),
-            "pick_many": Param(
+            "arquivos_imdb": Param(
+                default=["title.basics.tsv.gz"],
                 type="array",
                 items={
                     "type": "string",
-                    "enum": [f"value {i}" for i in range(16, 64)],
+                    "enum": [
+                        "title.basics.tsv.gz",
+                        "title.akas.tsv.gz",
+                        "name.basics.tsv.gz"
+                    ],
+                    "values_display": [  # ou "enumNames" se estiver usando padrão JSON Schema
+                        "Título Principal",
+                        "Títulos Alternativos",
+                        "Nomes de Pessoas"
+                    ]
                 },
                 uniqueItems=True,
-                title="Select many Value",
-                description="You can use JSON schema enum's to generate drop down selection boxes.",
+                description="Selecione um ou mais arquivos IMDb"
             ),
             "required_field": Param(
                 # In this example we have no default value
