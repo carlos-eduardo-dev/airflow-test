@@ -58,19 +58,9 @@ with DAG(
             "arquivos_imdb": Param(
                 default=["title.basics.tsv.gz"],
                 type="array",
-                items={
-                    "type": "string",
-                    "enum": [
-                        "title.basics.tsv.gz",
-                        "title.akas.tsv.gz",
-                        "name.basics.tsv.gz"
-                    ],
-                    "values_display": [  # ou "enumNames" se estiver usando padrão JSON Schema
-                        "Título Principal",
-                        "Títulos Alternativos",
-                        "Nomes de Pessoas"
-                    ]
-                },
+                examples=["title.basics.tsv.gz",
+                          "title.akas.tsv.gz",
+                          "name.basics.tsv.gz"],
                 uniqueItems=True,
                 description="Selecione um ou mais arquivos IMDb"
             ),
