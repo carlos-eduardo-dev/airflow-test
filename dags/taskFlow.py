@@ -1,6 +1,8 @@
 from pendulum import datetime, duration
 from io import StringIO
 
+from airflow import DAG, Param
+
 import pandas as pd
 import requests
 from airflow.decorators import dag, task
@@ -73,6 +75,19 @@ def process_data(cat_fact_number):
     schedule="@daily",
     default_args={"retries": 1, "retry_delay": duration(minutes=1)},
     catchup=False,
+    params={
+        "names": Param(
+            ["Linda", "Martha", "Thomas"],
+            type="array",
+            description="Define the list of names for which greetings should be generated in the logs."
+            " Please have one name per line.",
+            title="Names to greet",
+        ),
+        "english": Param(True, type="boolean", title="English"),
+        "german": Param(True, type="boolean", title="German (Formal)"),
+        "french": Param(True, type="boolean", title="French"),
+    },
+
 )
 def intermediary_data_storage_dag():
     create_bucket() >> upload_to_s3(cat_fact_number=1) >> process_data(cat_fact_number=1)
