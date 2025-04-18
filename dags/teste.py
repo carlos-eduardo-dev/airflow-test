@@ -78,3 +78,5 @@ with DAG(
     french_greetings = generate_french_greeting.expand(name=names)
     lang_select >> [english_greetings, german_greetings, french_greetings]
     results_print = print_greetings(english_greetings, german_greetings, french_greetings)
+
+dag()
