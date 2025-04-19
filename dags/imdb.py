@@ -44,7 +44,7 @@ def select_datasets(**kwargs) -> List[str]:
             type="array",
             title="IMDb Datasets",
             description="Selecione um ou mais arquivos da IMDb Non-Commercial Datasets.",
-            examples=DATASETS.keys(),
+            examples=list(DATASETS.keys()),
             values_display=DATASETS,
         ), },
     tags=['imdb'],
