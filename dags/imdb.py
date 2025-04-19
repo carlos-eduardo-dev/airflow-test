@@ -1,12 +1,15 @@
 from datetime import timedelta
 
-from airflow.decorators import dag
+from airflow.decorators import dag, task
 from airflow.models import Param
 from pendulum import today
 
 DEFAULT_MINIO_CONNECTION_ID = "minio-connection"
 DEFAULT_MINIO_BUCKET_NAME = "imdb-raw"
 
+@task
+def print_params(**kwargs):
+    print(kwargs["params"])
 
 @dag(
     dag_id="imdb",
@@ -16,8 +19,14 @@ DEFAULT_MINIO_BUCKET_NAME = "imdb-raw"
     schedule="@daily",
     default_args={"retries": 2, "retry_delay": timedelta(minutes=2)},
     params={
+        "url": Param(
+            default="https://datasets.imdbws.com",
+            type="string",
+            title="URL",
+            description="URL base para download dos datasets",
+        ),
         "datasets": Param(
-            default=["title.basics.tsv.gz"],
+            default=["title.basics.tsv.gz", "title.episode.tsv.gz", "title.ratings.tsv.gz"],
             type="array",
             title="IMDb Datasets",
             description="Selecione um ou mais arquivos da IMDb Non-Commercial Datasets.",
@@ -44,7 +53,7 @@ DEFAULT_MINIO_BUCKET_NAME = "imdb-raw"
     tags=['imdb'],
 )
 def dag():
-    return []
+    print_params()
 
 
 dag()
