@@ -9,6 +9,8 @@ DEFAULT_MINIO_BUCKET_NAME = "imdb-raw"
 
 
 @dag(
+    dag_id="imdb",
+    dag_display_name="IMDb",
     max_active_runs=1,
     start_date=today(),
     schedule="@daily",
