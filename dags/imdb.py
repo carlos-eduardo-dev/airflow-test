@@ -2,14 +2,28 @@ from datetime import timedelta
 
 from airflow.decorators import dag, task
 from airflow.models import Param
+from airflow.models.param import ParamsDict
 from pendulum import today
+from typing import List
 
 DEFAULT_MINIO_CONNECTION_ID = "minio-connection"
 DEFAULT_MINIO_BUCKET_NAME = "imdb-raw"
+DATASETS = {
+    "title.basics.tsv.gz": "Títulos",
+    "title.akas.tsv.gz": "Títulos Alternativos",
+    "title.episode.tsv.gz": "Episódios",
+    "title.ratings.tsv.gz": "Avaliações",
+    "title.crew.tsv.gz": "Diretores/Escritores",
+    "title.principals.tsv.gz": "Elenco",
+    "name.basics.tsv.gz": "Dados Pessoais",
+}
+
 
 @task
-def print_params(**kwargs):
-    print(kwargs["params"])
+def select_datasets(**kwargs) -> List[str]:
+    params: ParamsDict = kwargs["params"]
+    return params["datasets"]
+
 
 @dag(
     dag_id="imdb",
@@ -30,30 +44,13 @@ def print_params(**kwargs):
             type="array",
             title="IMDb Datasets",
             description="Selecione um ou mais arquivos da IMDb Non-Commercial Datasets.",
-            examples=[
-                "title.basics.tsv.gz",
-                "title.akas.tsv.gz",
-                "title.episode.tsv.gz",
-                "title.ratings.tsv.gz",
-                "title.crew.tsv.gz",
-                "title.principals.tsv.gz",
-                "name.basics.tsv.gz",
-            ],
-            values_display={
-                "title.basics.tsv.gz": "Títulos",
-                "title.akas.tsv.gz": "Títulos Alternativos",
-                "title.episode.tsv.gz": "Episódios",
-                "title.ratings.tsv.gz": "Avaliações",
-                "title.crew.tsv.gz": "Diretores/Escritores",
-                "title.principals.tsv.gz": "Elenco",
-                "name.basics.tsv.gz": "Dados Pessoais",
-            },
-        ),
-    },
+            examples=DATASETS.keys(),
+            values_display=DATASETS,
+        ), },
     tags=['imdb'],
 )
 def dag():
-    print_params()
+    select_datasets()
 
 
 dag()
