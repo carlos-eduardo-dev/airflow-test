@@ -34,7 +34,7 @@ def datasets_info(**kwargs) -> List[Dict[str, str]]:
 
 
 @task(task_id="download_dataset", task_display_name="Download dataset", retries=3, retry_delay=timedelta(minutes=2))
-def download_dataset(dataset: str) -> str:
+def download_dataset(dataset) -> str:
     dataset_name = dataset["name"]
     dataset_url = dataset["url"]
     try:
@@ -51,6 +51,7 @@ def download_dataset(dataset: str) -> str:
         print(f"Erro no download de {dataset_name}: {e}")
         raise AirflowFailException(f"Falha ao baixar {dataset_name} de {dataset_url}")
 
+
 @task(task_id="create_bucket", task_display_name="Create bucket if not exists")
 def create_bucket():
     s3_hook = S3Hook(aws_conn_id=DEFAULT_MINIO_CONNECTION_ID)
@@ -58,6 +59,16 @@ def create_bucket():
     if not s3_hook.check_for_bucket(bucket_name=s3_bucket):
         s3_hook.create_bucket(bucket_name=s3_bucket)
 
+@task
+def upload_to_s3(path, bucket, key):
+    date = today().to_date_string()
+    s3_hook = S3Hook(aws_conn_id=DEFAULT_MINIO_CONNECTION_ID)
+    s3_hook.load_file(
+        filename=path,
+        key=f"{date}/{key}",
+        bucket_name=bucket,
+        replace=True
+    )
 
 @task(task_id="delete_temp_file", task_display_name="Delete temporary file")
 def delete_temp_file(path):
@@ -66,6 +77,7 @@ def delete_temp_file(path):
         print(f"Arquivo {path} removido")
     else:
         print(f"Arquivo {path} não encontrado")
+
 
 @dag(
     dag_id="imdb",
@@ -92,7 +104,25 @@ def delete_temp_file(path):
     tags=['imdb'],
 )
 def dag():
+    # 1. Criação do bucket no MinIO/S3
+    bucket = create_bucket()
+
+    # 2. Geração das URLs com base nos datasets selecionados
     datasets = datasets_info()
-    downloaded_datasets = download_dataset.expand(dataset=datasets)
-    datasets_info() >> [downloaded_datasets]
+
+    # 3. Download dos arquivos em paralelo
+    arquivos_baixados = download_dataset.expand(dataset=datasets)
+
+    # 4. Upload dos arquivos para o S3/MinIO, mantendo nome e data no path
+    upload = upload_to_s3.partial(bucket=DEFAULT_MINIO_BUCKET_NAME).expand(
+        path=arquivos_baixados,
+        key=[d["name"] for d in datasets]
+    )
+
+    # 5. Remoção dos arquivos temporários
+    delete_temp_file.expand(path=arquivos_baixados).set_upstream(upload)
+
+    # Encadeamento implícito para garantir que bucket exista antes de qualquer coisa
+    bucket >> datasets
+
 dag()
