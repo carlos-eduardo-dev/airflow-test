@@ -34,7 +34,7 @@ def datasets_info(**kwargs) -> List[Dict[str, str]]:
 
 
 @task(task_id="download_dataset", task_display_name="Download dataset", retries=3, retry_delay=timedelta(minutes=2))
-def download_dataset(dataset) -> str:
+def download_dataset(dataset) -> Dict[str, str]:
     dataset_name = dataset["name"]
     dataset_url = dataset["url"]
     try:
@@ -46,7 +46,7 @@ def download_dataset(dataset) -> str:
                 temp_file.write(chunk)
 
         print(f"Download de {dataset_name} completo: {temp_file.name}")
-        return temp_file.name
+        return {"name": dataset_name, "path": temp_file.name}
     except requests.exceptions.RequestException as e:
         print(f"Erro no download de {dataset_name}: {e}")
         raise AirflowFailException(f"Falha ao baixar {dataset_name} de {dataset_url}")
@@ -60,23 +60,27 @@ def create_bucket():
         s3_hook.create_bucket(bucket_name=s3_bucket)
 
 @task(task_id="upload_to_s3", task_display_name="Upload datasets to S3", retries=3, retry_delay=timedelta(seconds=30))
-def upload_to_s3(path, bucket, key):
+def upload_to_s3(dataset):
+    dataset_path = dataset["path"]
+    dataset_key = dataset["name"]
     date = today().to_date_string()
     s3_hook = S3Hook(aws_conn_id=DEFAULT_MINIO_CONNECTION_ID)
     s3_hook.load_file(
-        filename=path,
-        key=f"{date}/{key}",
-        bucket_name=bucket,
+        filename=dataset_path,
+        key=f"{date}/{dataset_key}",
+        bucket_name=DEFAULT_MINIO_BUCKET_NAME,
         replace=True
     )
+    print(f"Enviado para s3://{DEFAULT_MINIO_BUCKET_NAME}/{date}/{dataset_key}")
 
 @task(task_id="delete_temp_file", task_display_name="Delete temporary file")
-def delete_temp_file(path):
-    if os.path.exists(path):
-        os.remove(path)
-        print(f"Arquivo {path} removido")
+def delete_temp_file(dataset):
+    dataset_path = dataset["path"]
+    if os.path.exists(dataset_path):
+        os.remove(dataset_path)
+        print(f"Arquivo {dataset_path} removido")
     else:
-        print(f"Arquivo {path} não encontrado")
+        print(f"Arquivo {dataset_path} não encontrado")
 
 
 @dag(
@@ -111,16 +115,13 @@ def dag():
     datasets = datasets_info()
 
     # 3. Download dos arquivos em paralelo
-    arquivos_baixados = download_dataset.expand(dataset=datasets)
+    downloads = download_dataset.expand(dataset=datasets)
 
     # 4. Upload dos arquivos para o S3/MinIO, mantendo nome e data no path
-    upload = upload_to_s3.partial(bucket=DEFAULT_MINIO_BUCKET_NAME).expand(
-        path=arquivos_baixados,
-        key=[d["name"] for d in datasets]
-    )
+    uploads = upload_to_s3.expand(dataset=downloads)
 
     # 5. Remoção dos arquivos temporários
-    delete_temp_file.expand(path=arquivos_baixados).set_upstream(upload)
+    delete_temp_file.expand(dataset=downloads).set_upstream(uploads)
 
     # Encadeamento implícito para garantir que bucket exista antes de qualquer coisa
     bucket >> datasets
