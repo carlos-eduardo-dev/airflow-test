@@ -59,7 +59,7 @@ def create_bucket():
     if not s3_hook.check_for_bucket(bucket_name=s3_bucket):
         s3_hook.create_bucket(bucket_name=s3_bucket)
 
-@task
+@task(task_id="upload_to_s3", task_display_name="Upload datasets to S3", retries=3, retry_delay=timedelta(seconds=30))
 def upload_to_s3(path, bucket, key):
     date = today().to_date_string()
     s3_hook = S3Hook(aws_conn_id=DEFAULT_MINIO_CONNECTION_ID)
